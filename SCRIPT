@@ -1,0 +1,383 @@
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+print("Library loaded")
+
+local Window = OrionLib:MakeWindow({
+Name = "LT FRUITS SCRIPT",
+HidePremium = false,
+SaveConfig = true,
+ConfigFolder = "LTFRUITSConfig",
+IntroText = "Welcome to LT FRUITS SCRIPT"
+})
+
+-- Define toggles and functions
+local toggles = {
+dummyActive = false,
+dummy5kActive = false,
+bossesActive = false,
+killPlayersActive = false,
+collectCoinsActive = false,
+targetActive = false,
+exp13xActive = false
+}
+
+local targetPlayer = ""
+local isPremium = false
+local premiumKey = "Key_2992932649284"
+local damageSpeed = 0.0005  -- Adjusted speed
+
+-- Function to verify premium key and apply benefits
+local function notify(message)
+OrionLib:MakeNotification({
+Name = "Notification",
+Content = message,
+Image = "rbxassetid://4483345998",
+Time = 5
+})
+end
+
+local function verifyPremiumKey(key)
+if key == premiumKey then
+isPremium = true
+damageSpeed = 0.0001  -- Increased speed for premium users
+notify("Premium key verified. Benefits applied.")
+print("Premium key verified. Benefits applied.")
+else
+notify("Invalid premium key.")
+print("Invalid premium key.")
+end
+end
+
+-- Function to apply damage
+local function damageEntity(entity)
+if not entity or not entity:FindFirstChild("Humanoid") then
+print("Invalid entity or Humanoid not found")
+return
+end
+local args = { [1] = "damage", [2] = { ["EnemyHumanoid"] = entity.Humanoid } }
+pcall(function()
+game:GetService("ReplicatedStorage"):WaitForChild("SkillsInRS"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+end)
+wait(damageSpeed)
+end
+
+-- Task functions
+local function damageTask(entity)
+while entity and entity:FindFirstChild("Humanoid") and entity.Humanoid.Health > 0 do
+if not toggles.dummyActive and not toggles.dummy5kActive and not toggles.bossesActive and not toggles.killPlayersActive and not toggles.targetActive then
+break
+end
+pcall(function()
+damageEntity(entity)
+end)
+wait(damageSpeed)
+end
+end
+local function dummyTask()
+while toggles.dummyActive do
+local dummy = workspace:FindFirstChild("MAP"):FindFirstChild("dummies"):FindFirstChild("Dummy")
+if dummy and dummy:FindFirstChild("HumanoidRootPart") then
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = dummy.HumanoidRootPart.CFrame
+damageTask(dummy)
+else
+print("Dummy not found")
+end
+wait(0.05) -- Slight delay to prevent freezing
+if not toggles.dummyActive then break end
+end
+print("Dummy task deactivated")
+end
+
+local function dummy5kTask()
+while toggles.dummy5kActive do
+local dummy2 = workspace:FindFirstChild("MAP"):FindFirstChild("5k_dummies"):FindFirstChild("Dummy2")
+if dummy2 and dummy2:FindFirstChild("HumanoidRootPart") then
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = dummy2.HumanoidRootPart.CFrame
+damageTask(dummy2)
+else
+print("5k Dummy not found")
+end
+wait(0.05) -- Slight delay to prevent freezing
+if not toggles.dummy5kActive then break end
+end
+print("Dummy 5k task deactivated")
+end
+
+local function bossesTask()
+while toggles.bossesActive do
+local bosses = {
+workspace:FindFirstChild("NPC"):FindFirstChild("Griffin"),
+workspace:FindFirstChild("NPC"):FindFirstChild("CRABBOSS"),
+workspace:FindFirstChild("NPC"):FindFirstChild("LavaGorilla"),
+workspace:FindFirstChild("NPC"):FindFirstChild("CENTAUR"),
+workspace:FindFirstChild("NPC"):FindFirstChild("DragonGiraffe")
+}
+for _, boss in ipairs(bosses) do
+if boss and boss:FindFirstChild("Humanoid") then
+damageTask(boss)
+wait(damageSpeed * 0.1)  -- Increased speed for boss damage
+else
+print("Boss not found")
+end
+if not toggles.bossesActive then break end
+end
+wait(0.05) -- Slight delay to prevent freezing
+if not toggles.bossesActive then break end
+end
+print("Bosses task deactivated")
+end
+
+local function killPlayersTask()
+while toggles.killPlayersActive do
+local players = game.Players:GetPlayers()
+for _, player in ipairs(players) do
+if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart") then
+damageTask(player.Character)
+end
+if not toggles.killPlayersActive then break end
+end
+wait(0.05) -- Slight delay to prevent freezing
+if not toggles.killPlayersActive then break end
+end
+print("Kill players task deactivated")
+end
+
+local function targetPlayerTask()
+while toggles.targetActive do
+if targetPlayer ~= "" then
+local target = game.Players:FindFirstChild(targetPlayer)
+if target and target.Character and target.Character:FindFirstChild("Humanoid") and target.Character:FindFirstChild("HumanoidRootPart") then
+damageTask(target.Character)
+wait(damageSpeed * 0.1)  -- Increased speed for target player damage
+else
+print("Target player not found")
+end
+end
+wait(0.05) -- Slight delay to prevent freezing
+if not toggles.targetActive then break end
+end
+print("Target player task deactivated")
+end
+
+local function collectCoinsTask()
+while toggles.collectCoinsActive do
+pcall(function()
+game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("CoinEvent"):FireServer()
+end)
+wait(damageSpeed)
+if not toggles.collectCoinsActive then break end
+end
+print("Collect coins task deactivated")
+end
+
+local function activate13xEXP()
+if game.CreatorType == Enum.CreatorType.User then
+game.Players.LocalPlayer.UserId = game.CreatorId
+elseif game.CreatorType == Enum.CreatorType.Group then
+game.Players.LocalPlayer.UserId = game:GetService("GroupService"):GetGroupInfoAsync(game.CreatorId).Owner.Id
+end
+game.Players.LocalPlayer.Character.Humanoid.Health = 0
+end
+
+-- Main Tab
+local MainTab = Window:MakeTab({
+Name = "Main",
+Icon = "rbxassetid://4483345998",
+PremiumOnly = false
+})
+
+MainTab:AddLabel("LT FRUITS SCRIPT v1.8")
+MainTab:AddLabel("Welcome to LT FRUITS SCRIPT")
+MainTab:AddLabel("This script includes various features and functionalities.")
+
+-- Farm Tab
+local FarmTab = Window:MakeTab({
+Name = "Farm",
+Icon = "rbxassetid://4483345998",
+PremiumOnly = false
+})
+
+FarmTab:AddToggle({
+Name = "Activate Dummy",
+Default = false,
+Callback = function(state)
+toggles.dummyActive = state
+if state then
+spawn(dummyTask)
+end
+end
+})
+
+FarmTab:AddToggle({
+Name = "Activate 5k Dummy",
+Default = false,
+Callback = function(state)
+toggles.dummy5kActive = state
+if state then
+spawn(dummy5kTask)
+end
+end
+})
+
+FarmTab:AddToggle({
+Name = "Toggle Boss Kill",
+Default = false,
+Callback = function(state)
+toggles.bossesActive = state
+if state then
+spawn(bossesTask)
+end
+end
+})
+
+FarmTab:AddToggle({
+Name = "Kill Players",
+Default = false,
+Callback = function(state)
+toggles.killPlayersActive = state
+if state then
+spawn(killPlayersTask)
+end
+end
+})
+
+FarmTab:AddToggle({
+Name = "Collect Coins",
+Default = false,
+Callback = function(state)
+toggles.collectCoinsActive = state
+if state then
+spawn(collectCoinsTask)
+end
+end
+})
+
+FarmTab:AddTextbox({
+Name = "Target Player",
+Default = "",
+TextDisappear = true,
+Callback = function(value)
+targetPlayer = value
+end
+})
+
+FarmTab:AddToggle({
+Name = "Kill Target Player",
+Default = false,
+Callback = function(state)
+toggles.targetActive = state
+if state then
+spawn(targetPlayerTask)
+end
+end
+})
+
+FarmTab:AddButton({
+Name = "Activate 13x EXP",
+Callback = function()
+toggles.exp13xActive = true
+activate13xEXP()
+end
+})
+
+-- Settings Tab
+local SettingsTab = Window:MakeTab({
+Name = "Settings",
+Icon = "rbxassetid://4483345998",
+PremiumOnly = false
+})
+
+SettingsTab:AddSlider({
+Name = "Jump Power",
+Min = 0,
+Max = 500,
+Default = 50,
+Color = Color3.fromRGB(0, 255, 0),
+Increment = 1,
+Callback = function(value)
+if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
+print("Jump Power set to", value)
+end
+end
+})
+
+SettingsTab:AddSlider({
+Name = "Walk Speed",
+Min = 0,
+Max = 500,
+Default = 16,
+Color = Color3.fromRGB(0, 255, 0),
+Increment = 1,
+Callback = function(value)
+if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+print("Walk Speed set to", value)
+end
+end
+})
+
+SettingsTab:AddButton({
+Name = "Load Hitbox Script",
+Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Vcsk/RobloxScripts/main/HitboxExpander.lua"))()
+print("Hitbox script loaded")
+end
+})
+
+SettingsTab:AddButton({
+Name = "Anti AFK",
+Callback = function()
+local vu = game:GetService("VirtualUser")
+game.Players.LocalPlayer.Idled:connect(function()
+vu:CaptureController()
+vu:ClickButton2(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+print("Anti AFK Activated")
+end)
+end
+})
+
+-- Premium Tab
+local PremiumTab = Window:MakeTab({
+Name = "Premium",
+Icon = "rbxassetid://4483345998",
+PremiumOnly = false
+})
+
+PremiumTab:AddTextbox({
+Name = "Enter Premium Key",
+Default = "",
+TextDisappear = true,
+Callback = function(value)
+verifyPremiumKey(value)
+end
+})
+
+-- Info Tab
+local InfoTab = Window:MakeTab({
+Name = "Info",
+Icon = "rbxassetid://4483345998",
+PremiumOnly = false
+})
+
+InfoTab:AddLabel("LT FRUITS SCRIPT v1.8 - Created by:")
+InfoTab:AddLabel("azhal7 / LT ruivo / sor player")
+InfoTab:AddLabel("Latest Update: 1.8")
+InfoTab:AddLabel("Thank you for using LT FRUITS SCRIPT!")
+
+InfoTab:AddButton({
+Name = "Copy Discord Link",
+Callback = function()
+setclipboard("https://discord.com/invite/qYXam3fNbw")
+print("Discord link copied to clipboard")
+end
+})
+
+InfoTab:AddButton({
+Name = "Copy YouTube Link",
+Callback = function()
+setclipboard("https://www.youtube.com/@kokojoscripts")
+print("YouTube link copied to clipboard")
+end
+})
+
+OrionLib:Init()
